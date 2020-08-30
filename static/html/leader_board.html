@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LeetCode刷刷群排行榜</title>
+</head>
+<body>
+<div style="font-size: 25px;text-align: center; margin: 0 auto">
+    {{ range $k,$v := .Users }}
+        <ul><strong>{{ $k }}</strong>: {{$v}}</ul>
+    {{ end }}
+</div>
+</body>
+</html>
