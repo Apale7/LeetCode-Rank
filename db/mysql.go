@@ -24,6 +24,7 @@ func init() {
 	Db, err = gorm.Open("mysql", fmt.Sprintf(base, mysql_conf.Username, mysql_conf.Password, mysql_conf.Host, mysql_conf.Port, mysql_conf.Dbname))
 	if err != nil {
 		log.Error(errors.WithStack(err))
+		return
 	} else {
 		fmt.Println("database linked")
 	}
@@ -64,9 +65,9 @@ type Mysql struct {
 }
 
 type Accepted struct {
-	Time      time.Time `gorm:"primary_key"`
-	Username  string    `gorm:"size:64"`
-	ProblemId string    `gorm:"size:128;UNIQUE"`
+	Time      time.Time
+	Username  string    `gorm:"size:64;primary_key"`
+	ProblemId string    `gorm:"size:128;primary_key"`
 }
 
 type Problem struct {

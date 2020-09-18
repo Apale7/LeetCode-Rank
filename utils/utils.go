@@ -9,7 +9,13 @@ import (
 
 func GetSolveNumberToday(username string) int{
 	tmp := time.Now()
-	t := time.Date(tmp.Year(), tmp.Month(), tmp.Day(), 0, 0, 0, 0, time.Local)
+	t := time.Now()
+	if tmp.Hour() >= 8 {
+		t = time.Date(tmp.Year(), tmp.Month(), tmp.Day(), 0, 0, 0, 0, time.Local)
+	} else {
+		t = time.Date(tmp.Year(), tmp.Month(), tmp.Day()-1, 0, 0, 0, 0, time.Local)
+	}
+	
 	count := 0
 	db.Db.Model(&db.Accepted{}).Where("username = ? and time >= ?", username, t).Count(&count)
 	return count

@@ -9,16 +9,29 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"fmt"
 )
+
+type Rank struct {
+	Name string `json:"name"`
+	Num int `json:"num"`
+}
 
 func GetList(c *gin.Context) {
 	viper.AddConfigPath("config")
 	viper.SetConfigName("userlist")
 	viper.ReadInConfig()
 	var Users []string = viper.GetStringSlice("users")
-	data := make(map[string]int)
+	viper.SetConfigName("user_map")
+	viper.ReadInConfig()
+	user_map := viper.GetStringMap("usermap")
+	data := []Rank{}
+	tmp := Rank{}
 	for _, username := range Users {
-		data[username] = utils.GetSolveNumberToday(username)
+		tmp.Name = user_map[username].(string)
+		tmp.Num = utils.GetSolveNumberToday(username)
+		data = append(data, tmp)
+		// fmt.Println(tmp)
 	}
 	c.JSON(http.StatusOK, data)
 }
@@ -28,9 +41,15 @@ func LeaderBoard(c *gin.Context)  {
 	viper.SetConfigName("userlist")
 	viper.ReadInConfig()
 	var Users []string = viper.GetStringSlice("users")
+	viper.SetConfigName("user_map")
+	viper.ReadInConfig()
+	user_map := viper.GetStringMap("usermap")
+	// fmt.Println(user_map)
+	viper.ReadInConfig()
 	data := make(map[string]int)
 	for _, username := range Users {
-		data[username] = utils.GetSolveNumberToday(username)
+		fmt.Println(username)
+		data[user_map[username].(string)] = utils.GetSolveNumberToday(username)
 	}
 	bytes, err := ioutil.ReadFile("./static/html/leader_board.html")
 	if err != nil {
