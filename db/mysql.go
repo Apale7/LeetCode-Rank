@@ -17,9 +17,16 @@ var err error
 func init() {
 	viper.SetConfigName("dbconf")
 	viper.AddConfigPath("config")
-	viper.ReadInConfig()
+	err = viper.ReadInConfig()
+	if err != nil {
+		log.Error(errors.WithStack(err))
+		panic("viper readInConfig error")
+	}
 	var dbconf conf
-	viper.Unmarshal(&dbconf)
+	if err=viper.Unmarshal(&dbconf); err!=nil {
+		log.Error(errors.WithStack(err))
+		panic("viper Unmarshal error")
+	}
 	mysql_conf := dbconf.Mysql
 	Db, err = gorm.Open("mysql", fmt.Sprintf(base, mysql_conf.Username, mysql_conf.Password, mysql_conf.Host, mysql_conf.Port, mysql_conf.Dbname))
 	if err != nil {
@@ -36,8 +43,8 @@ func init() {
 	}
 }
 
-func AddProblem(id string, name string) {
-	p := Problem{Id: id, Name: name}
+func AddProblem(id string, name string, level int) {
+	p := Problem{Id: id, Name: name, Difficulty: level}
 	Db.Create(&p)
 	//if Db.Error != nil {
 	//	log.Error(errors.WithStack(Db.Error))
@@ -73,4 +80,5 @@ type Accepted struct {
 type Problem struct {
 	Id   string `gorm:"primary_key;size:128"`
 	Name string `gorm:"size:255"`
+	Difficulty int
 }

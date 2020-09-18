@@ -14,7 +14,9 @@ import (
 
 type Rank struct {
 	Name string `json:"name"`
-	Num int `json:"num"`
+	Easy int `json:"easy"`
+	Medium int `json:"medium"`
+	Hard int `json:"hard"`
 }
 
 func GetList(c *gin.Context) {
@@ -29,7 +31,7 @@ func GetList(c *gin.Context) {
 	tmp := Rank{}
 	for _, username := range Users {
 		tmp.Name = user_map[username].(string)
-		tmp.Num = utils.GetSolveNumberToday(username)
+		tmp.Easy, tmp.Medium, tmp.Hard = utils.GetScoreToday(username)
 		data = append(data, tmp)
 		// fmt.Println(tmp)
 	}
@@ -49,7 +51,7 @@ func LeaderBoard(c *gin.Context)  {
 	data := make(map[string]int)
 	for _, username := range Users {
 		fmt.Println(username)
-		data[user_map[username].(string)] = utils.GetSolveNumberToday(username)
+		data[user_map[username].(string)] = 0
 	}
 	bytes, err := ioutil.ReadFile("./static/html/leader_board.html")
 	if err != nil {

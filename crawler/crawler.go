@@ -1,18 +1,38 @@
 package crawler
 
 import (
+	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var lang map[string]string
+var header map[string][]string
 
 func init() {
+	header = make(map[string][]string)
+	header["accept"] = []string{"*/*"}
+	header["accept-encoding"] = []string{"gzip", "deflate", "br"}
+	header["accept-language"] = []string{"zh-CN"}
+	header["content-length"] = []string{"1262"}
+	header["content-type"] = []string{"application/json"}
+	header["origin"] = []string{"https://leetcode-cn.com"}
+	header["referer"] = []string{"https://leetcode-cn.com/problems/two-sum/"}
+	header["sec-fetch-dest"] = []string{"empty"}
+	header["sec-fetch-mode"] = []string{"cors"}
+	header["sec-fetch-site"] = []string{"same-origin"}
+	header["user-agent"] = []string{"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36"}
+	header["x-csrftoken"] = []string{"AFrbuAoCqSd8oN7A7AffwmmDgnYZ7V6uNolMLnJT5rcXEuiPlIGpNjzasr7eK85l"}
+	header["x-definition-name"] = []string{"question"}
+	header["x-operation-name"] = []string{"questionData"}
+	header["x-timezone"] = []string{"Etc/Unknown"}
+	//fmt.Println(header)
 	lang = make(map[string]string)
 	lang["A_0"] = "C++"
 	lang["A_1"] = "Java"
@@ -66,7 +86,42 @@ func GetData(username string) []RecentSubmissions {
 	submmits := unique(data.Data.RecentSubmissions)
 	return submmits
 }
-func main() {
+func GetDifficulty(title string) (int){
+	client := &http.Client{}
+	body := fmt.Sprintf(`{"operationName": "questionData",
+    "variables": {
+       "titleSlug": "%s"
+    },
+    "query": "query questionData($titleSlug: String!) {\n  question(titleSlug: $titleSlug) {difficulty}\n}\n"}`, title)
+	req, _ := http.NewRequest("POST", "https://leetcode-cn.com/graphql/", strings.NewReader(body))
+	req.Header = header
+	res, _ := client.Do(req)
+	defer res.Body.Close()
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Error(errors.WithStack(err))
+	}
+	var data QuestionLevelInfo
+	err = json.Unmarshal(resBody, &data)
+	switch data.Data.Question.Difficulty {
+	case "Easy":
+		return 0
+	case "Medium":
+		return 1
+	default:
+		return 2
+	}
+}
+
+type QuestionLevelInfo struct {
+	Data QuestionLevelData `json:"data"`
+}
+
+type QuestionLevel struct {
+	Difficulty string `json:"difficulty"`
+}
+type QuestionLevelData struct {
+	Question QuestionLevel `json:"question"`
 }
 
 type Info struct {

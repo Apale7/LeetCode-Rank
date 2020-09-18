@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func GetSolveNumberToday(username string) int{
+func GetScoreToday(username string) (int, int, int) {
 	tmp := time.Now()
 	t := time.Now()
 	if tmp.Hour() >= 8 {
@@ -15,10 +15,13 @@ func GetSolveNumberToday(username string) int{
 	} else {
 		t = time.Date(tmp.Year(), tmp.Month(), tmp.Day()-1, 0, 0, 0, 0, time.Local)
 	}
-	
-	count := 0
-	db.Db.Model(&db.Accepted{}).Where("username = ? and time >= ?", username, t).Count(&count)
-	return count
+
+	easy, medium, hard := 0,0,0
+	table := db.Db.Table("accepteds").Where("username = ?", username).Joins(`left join problems on accepteds.problem_id = problems.id`)
+	table.Where("time >= ? and difficulty = ?", t, 0).Count(&easy)
+	table.Where("time >= ? and difficulty = ?", t, 1).Count(&medium)
+	table.Where("time >= ? and difficulty = ?", t, 2).Count(&hard)
+	return easy, medium, hard
 }
 
 func Update() {
@@ -30,8 +33,10 @@ func Update() {
 	for _, username := range Users {
 		submits := crawler.GetData(username)
 		for _, submit := range submits {
-			db.AddProblem(submit.Question.QuestionFrontendID, submit.Question.TranslatedTitle)
+			level := crawler.GetDifficulty(submit.Question.TitleSlug)
+			db.AddProblem(submit.Question.QuestionFrontendID, submit.Question.TranslatedTitle, level)
 			db.AddAccepted(submit.SubmitTime, username, submit.Question.QuestionFrontendID)
 		}
 	}
 }
+
