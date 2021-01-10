@@ -15,5 +15,5 @@ rank
 # vendor/
 *.yml
 .idea
-config/
+config/*.yml
 LeetCode-Rank-front_end/
