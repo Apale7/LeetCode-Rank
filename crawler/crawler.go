@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"LeetCode-Rank/model"
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
@@ -51,8 +52,8 @@ func init() {
 	lang["A_20"] = "TypeScript"
 }
 
-func unique(submits []RecentSubmissions) []RecentSubmissions {
-	ans := []RecentSubmissions{}
+func unique(submits []model.RecentSubmissions) []model.RecentSubmissions {
+	ans := []model.RecentSubmissions{}
 	st := make(map[string]bool)
 	for _, v := range submits {
 		if v.Status != "A_10" {
@@ -68,7 +69,7 @@ func unique(submits []RecentSubmissions) []RecentSubmissions {
 	return ans
 }
 
-func GetData(username string) []RecentSubmissions {
+func GetData(username string) []model.RecentSubmissions {
 	//username := "apale"
 	url := "https://leetcode-cn.com/graphql?oprationName=recentSubmissions&variables={%22userSlug%22:%22" + username + "%22}&query=query%20recentSubmissions($userSlug:%20String!){recentSubmissions(userSlug:%20$userSlug){status%20lang%20question{questionFrontendId%20title%20translatedTitle%20titleSlug%20__typename}submitTime%20__typename}}"
 	client := &http.Client{}
@@ -81,12 +82,13 @@ func GetData(username string) []RecentSubmissions {
 	if err != nil {
 		log.Error(errors.WithStack(err))
 	}
-	var data Info
+	var data model.Info
 	err = json.Unmarshal(body, &data)
+	fmt.Println(data)
 	submmits := unique(data.Data.RecentSubmissions)
 	return submmits
 }
-func GetDifficulty(title string) (int){
+func GetDifficulty(title string) int {
 	client := &http.Client{}
 	body := fmt.Sprintf(`{"operationName": "questionData",
     "variables": {
@@ -101,7 +103,7 @@ func GetDifficulty(title string) (int){
 	if err != nil {
 		log.Error(errors.WithStack(err))
 	}
-	var data QuestionLevelInfo
+	var data model.QuestionLevelInfo
 	err = json.Unmarshal(resBody, &data)
 	switch data.Data.Question.Difficulty {
 	case "Easy":
@@ -113,34 +115,31 @@ func GetDifficulty(title string) (int){
 	}
 }
 
-type QuestionLevelInfo struct {
-	Data QuestionLevelData `json:"data"`
+func GetUserAcInfo(username string) *model.AcData{
+	//username := "apale"
+	url := "https://leetcode-cn.com/graphql"
+	postData := model.PostData{
+		OprationName: "userPublicProfile",
+		Variables:    model.UserSlug{UserSlug: username},
+		Query:        "query userPublicProfile($userSlug: String!) {userProfilePublicProfile(userSlug: $userSlug) {username submissionProgress {totalSubmissions waSubmissions acSubmissions reSubmissions otherSubmissions acTotal questionTotal __typename} __typename}}",
+	}
+	client := &http.Client{}
+	bytes, err := json.Marshal(postData)
+
+	res, err := client.Post(url, "application/json", strings.NewReader(string(bytes)))
+	if err != nil {
+		log.Error(errors.WithStack(err))
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Error(errors.WithStack(err))
+	}
+	var data model.AcData
+	err = json.Unmarshal(body, &data)
+
+	fmt.Println(data)
+	// submmits := unique(data.Data.RecentSubmissions)
+	return &data
 }
 
-type QuestionLevel struct {
-	Difficulty string `json:"difficulty"`
-}
-type QuestionLevelData struct {
-	Question QuestionLevel `json:"question"`
-}
-
-type Info struct {
-	Data Data `json:"data"`
-}
-type Question struct {
-	QuestionFrontendID string `json:"questionFrontendId"`
-	Title              string `json:"title"`
-	TranslatedTitle    string `json:"translatedTitle"`
-	TitleSlug          string `json:"titleSlug"`
-	Typename           string `json:"__typename"`
-}
-type RecentSubmissions struct {
-	Status     string   `json:"status"`
-	Lang       string   `json:"lang"`
-	Question   Question `json:"question"`
-	SubmitTime int64    `json:"submitTime"`
-	Typename   string   `json:"__typename"`
-}
-type Data struct {
-	RecentSubmissions []RecentSubmissions `json:"recentSubmissions"`
-}
