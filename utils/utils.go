@@ -3,7 +3,6 @@ package utils
 import (
 	"LeetCode-Rank/crawler"
 	"LeetCode-Rank/db"
-	"LeetCode-Rank/model"
 	"fmt"
 	"github.com/spf13/viper"
 	"time"
@@ -36,6 +35,13 @@ func getNum7Day(username string) int {
 	return num
 }
 
+func getAll(username string) int {
+	num := 0
+	db.Db.Table("accepteds").Where("username = ?", username).Count(&num)
+	fmt.Println("num: ", num)
+	return num
+}
+
 func Update() {
 	viper.AddConfigPath("config")
 	viper.SetConfigName("userlist")
@@ -49,15 +55,15 @@ func Update() {
 			db.AddProblem(submit.Question.QuestionFrontendID, submit.Question.TranslatedTitle, level)
 			db.AddAccepted(submit.SubmitTime, username, submit.Question.QuestionFrontendID)
 		}
-		acInfo := crawler.GetUserAcInfo(username)
-		writeRedis(username, acInfo)
+		writeRedis(username)
 	}
 }
 
-func writeRedis(username string, acInfo *model.AcData) {
+func writeRedis(username string) {
 	ac7Day := getNum7Day(username)
 	easy, medium, hard := getScoreToday(username)
-	db.RedisClient.Set(username+"_ac_total", acInfo.UserAcInfo.UserProfilePublicProfile.SubmissionProgress.AcTotal, 0)
+	allAc := getAll(username)
+	db.RedisClient.Set(username+"_ac_total", allAc, 0)
 	db.RedisClient.Set(username+"_ac_today_easy", easy, 0)
 	db.RedisClient.Set(username+"_ac_today_medium", medium, 0)
 	db.RedisClient.Set(username+"_ac_today_hard", hard, 0)
