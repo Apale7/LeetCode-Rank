@@ -3,12 +3,13 @@ package crawler
 import (
 	"LeetCode-Rank/model"
 	"fmt"
-	jsoniter "github.com/json-iterator/go"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -84,7 +85,7 @@ func GetData(username string) []model.RecentSubmissions {
 	}
 	var data model.Info
 	err = json.Unmarshal(body, &data)
-	fmt.Println(data)
+	// fmt.Println(data)
 	submmits := unique(data.Data.RecentSubmissions)
 	return submmits
 }
@@ -115,14 +116,15 @@ func GetDifficulty(title string) int {
 	}
 }
 
-func GetUserAcInfo(username string) *model.AcData{
-	//username := "apale"
+func GetUserAcInfo(username string) *model.AcData {
+	fmt.Println(username)
 	url := "https://leetcode-cn.com/graphql"
 	postData := model.PostData{
 		OprationName: "userPublicProfile",
 		Variables:    model.UserSlug{UserSlug: username},
 		Query:        "query userPublicProfile($userSlug: String!) {userProfilePublicProfile(userSlug: $userSlug) {username submissionProgress {totalSubmissions waSubmissions acSubmissions reSubmissions otherSubmissions acTotal questionTotal __typename} __typename}}",
 	}
+
 	client := &http.Client{}
 	bytes, err := json.Marshal(postData)
 
@@ -142,4 +144,3 @@ func GetUserAcInfo(username string) *model.AcData{
 	// submmits := unique(data.Data.RecentSubmissions)
 	return &data
 }
-
