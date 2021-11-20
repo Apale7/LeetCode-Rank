@@ -126,7 +126,7 @@ func GetUserAcInfo(username string) *model.AcData {
 	}
 
 	client := &http.Client{}
-	bytes, err := json.Marshal(postData)
+	bytes, _ := json.Marshal(postData)
 
 	res, err := client.Post(url, "application/json", strings.NewReader(string(bytes)))
 	if err != nil {
@@ -139,7 +139,9 @@ func GetUserAcInfo(username string) *model.AcData {
 	}
 	var data model.AcData
 	err = json.Unmarshal(body, &data)
-
+	if err != nil {
+		fmt.Println(string(body))
+	}
 	fmt.Println(data)
 	// submmits := unique(data.Data.RecentSubmissions)
 	return &data

@@ -55,7 +55,7 @@ func Update() {
 		acInfo := crawler.GetUserAcInfo(username)
 		fmt.Printf("%+v\n", acInfo)
 		writeRedis(username, acInfo)
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 5)
 	}
 }
 
