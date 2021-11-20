@@ -45,6 +45,7 @@ func Update() {
 	var Users []string = viper.GetStringSlice("users")
 	fmt.Println(Users)
 	for _, username := range Users {
+		fmt.Printf("username: %s\n", username)
 		submits := crawler.GetData(username)
 		for _, submit := range submits {
 			level := crawler.GetDifficulty(submit.Question.TitleSlug)
@@ -54,6 +55,7 @@ func Update() {
 		acInfo := crawler.GetUserAcInfo(username)
 		fmt.Printf("%+v\n", acInfo)
 		writeRedis(username, acInfo)
+		time.Sleep(time.Second * 2)
 	}
 }
 
