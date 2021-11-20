@@ -2,19 +2,23 @@ package db
 
 import (
 	"fmt"
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"time"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"gorm.io/gorm/schema"
 )
 
 var base string = "%s:%s@tcp(%s:%d)/%s?charset=utf8"
 var Db *gorm.DB
 var err error
 
-func init() {
+func Init() {
 	viper.SetConfigName("dbconf")
 	viper.AddConfigPath("config")
 	err = viper.ReadInConfig()
@@ -23,29 +27,30 @@ func init() {
 		panic("viper readInConfig error")
 	}
 	var dbconf conf
-	if err=viper.Unmarshal(&dbconf); err!=nil {
+	if err = viper.Unmarshal(&dbconf); err != nil {
 		log.Error(errors.WithStack(err))
 		panic("viper Unmarshal error")
 	}
 	mysql_conf := dbconf.Mysql
-	Db, err = gorm.Open("mysql", fmt.Sprintf(base, mysql_conf.Username, mysql_conf.Password, mysql_conf.Host, mysql_conf.Port, mysql_conf.Dbname))
+	dsn := fmt.Sprintf(base, mysql_conf.Username, mysql_conf.Password, mysql_conf.Host, mysql_conf.Port, mysql_conf.Dbname)
+	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{SkipDefaultTransaction: true,
+		NamingStrategy: schema.NamingStrategy{
+			// TablePrefix:   "gormv2_",
+			SingularTable: true,
+		}})
 	if err != nil {
 		log.Error(errors.WithStack(err))
 		return
 	} else {
 		fmt.Println("database linked")
 	}
-	if !Db.HasTable(&Accepted{}) {
-		Db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&Accepted{})
-	}
-	if !Db.HasTable(&Problem{}) {
-		Db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&Problem{})
-	}
+	Db.AutoMigrate(&Accepted{}, Problem{})
+	InitRedis()
 }
 
 func AddProblem(id string, name string, level int) {
 	p := Problem{Id: id, Name: name, Difficulty: level}
-	Db.Create(&p)
+	Db.Clauses(clause.OnConflict{DoNothing: true}).Create(&p)
 	//if Db.Error != nil {
 	//	log.Error(errors.WithStack(Db.Error))
 	//}
@@ -54,7 +59,7 @@ func AddProblem(id string, name string, level int) {
 func AddAccepted(acceptedTime int64, username string, problemId string) {
 	t := time.Unix(acceptedTime, 0)
 	a := Accepted{Time: t, Username: username, ProblemId: problemId}
-	Db.Create(&a)
+	Db.Clauses(clause.OnConflict{DoNothing: true}).Create(&a)
 	//if Db.Error != nil {
 	//	log.Error(errors.WithStack(Db.Error))
 	//}
@@ -73,12 +78,12 @@ type Mysql struct {
 
 type Accepted struct {
 	Time      time.Time
-	Username  string    `gorm:"size:64;primary_key"`
-	ProblemId string    `gorm:"size:128;primary_key"`
+	Username  string `gorm:"size:64;primary_key"`
+	ProblemId string `gorm:"size:128;primary_key"`
 }
 
 type Problem struct {
-	Id   string `gorm:"primary_key;size:128"`
-	Name string `gorm:"size:255"`
+	Id         string `gorm:"primary_key;size:128"`
+	Name       string `gorm:"size:255"`
 	Difficulty int
 }

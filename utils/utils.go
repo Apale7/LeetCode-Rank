@@ -5,11 +5,12 @@ import (
 	"LeetCode-Rank/db"
 	"LeetCode-Rank/model"
 	"fmt"
-	"github.com/spf13/viper"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
-func getScoreToday(username string) (int, int, int) {
+func getScoreToday(username string) (int64, int64, int64) {
 	tmp := time.Now()
 	t := time.Now()
 	if tmp.Hour() >= 8 {
@@ -18,7 +19,7 @@ func getScoreToday(username string) (int, int, int) {
 		t = time.Date(tmp.Year(), tmp.Month(), tmp.Day()-1, 0, 0, 0, 0, time.Local)
 	}
 
-	easy, medium, hard := 0, 0, 0
+	var easy, medium, hard int64
 	table := db.Db.Table("accepteds").Where("username = ?", username).Joins(`left join problems on accepteds.problem_id = problems.id`)
 	table.Where("time >= ? and difficulty = ?", t, 0).Count(&easy)
 	table.Where("time >= ? and difficulty = ?", t, 1).Count(&medium)
@@ -26,22 +27,23 @@ func getScoreToday(username string) (int, int, int) {
 	return easy, medium, hard
 }
 
-func getNum7Day(username string) int {
+func getNum7Day(username string) int64 {
 	tmp := time.Now()
 	lasts7Day := time.Date(tmp.Year(), tmp.Month(), tmp.Day()-6, 0, 0, 0, 0, time.Local)
 	table := db.Db.Table("accepteds").Where("username = ?", username).Joins(`left join problems on accepteds.problem_id = problems.id`)
-	num := 0
+	var num int64
 	table.Where("time >= ?", lasts7Day).Count(&num)
 	fmt.Println("num: ", num)
 	return num
 }
 
 func Update() {
+	fmt.Println("???")
 	viper.AddConfigPath("config")
 	viper.SetConfigName("userlist")
 	_ = viper.ReadInConfig()
 	var Users []string = viper.GetStringSlice("users")
-	//fmt.Println(Users)
+	fmt.Println(Users)
 	for _, username := range Users {
 		submits := crawler.GetData(username)
 		for _, submit := range submits {
@@ -50,6 +52,7 @@ func Update() {
 			db.AddAccepted(submit.SubmitTime, username, submit.Question.QuestionFrontendID)
 		}
 		acInfo := crawler.GetUserAcInfo(username)
+		fmt.Printf("%+v\n", acInfo)
 		writeRedis(username, acInfo)
 	}
 }

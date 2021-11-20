@@ -4,10 +4,11 @@ import (
 	"LeetCode-Rank/db"
 	"LeetCode-Rank/model"
 	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"net/http"
 )
 
 func GetList(c *gin.Context) {
@@ -22,12 +23,12 @@ func GetList(c *gin.Context) {
 	tmp := model.Rank{}
 	for _, username := range Users {
 		tmp.Name = user_map[username].(string)
-		ac7Day, err := db.RedisClient.Get(username+"_ac_7day").Int()
-		easy, err := db.RedisClient.Get(username+"_ac_today_easy").Int()
-		medium, err := db.RedisClient.Get(username+"_ac_today_medium").Int()
-		hard, err := db.RedisClient.Get(username+"_ac_today_hard").Int()
+		ac7Day, err := db.RedisClient.Get(username + "_ac_7day").Int()
+		easy, err := db.RedisClient.Get(username + "_ac_today_easy").Int()
+		medium, err := db.RedisClient.Get(username + "_ac_today_medium").Int()
+		hard, err := db.RedisClient.Get(username + "_ac_today_hard").Int()
 
-		acNum, err := db.RedisClient.Get(username+"_ac_total").Int()
+		acNum, err := db.RedisClient.Get(username + "_ac_total").Int()
 		tmp.TotalAC = acNum
 		tmp.Easy = easy
 		tmp.Medium = medium

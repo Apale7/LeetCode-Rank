@@ -9,7 +9,7 @@ var (
 	RedisClient *redis.Client
 )
 
-func init() {
+func InitRedis() {
 	if err := initClient(); err != nil {
 		panic(err)
 	}

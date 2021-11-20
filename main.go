@@ -1,7 +1,9 @@
 package main
 
 import (
+	"LeetCode-Rank/db"
 	"LeetCode-Rank/utils"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
@@ -9,6 +11,7 @@ import (
 )
 
 func main() {
+	db.Init()
 	//utils.Update()
 	c := cron.New(cron.WithSeconds())
 	// utils.Update()
