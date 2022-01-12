@@ -1,10 +1,11 @@
 package main
 
 import (
-	"LeetCode-Rank/handler"
+	"LeetCode-Rank/biz/handler"
+
 	"github.com/gin-gonic/gin"
 )
 
-func CollectRouter(r *gin.Engine){
+func CollectRouter(r *gin.Engine) {
 	r.GET("list", handler.GetList)
 }

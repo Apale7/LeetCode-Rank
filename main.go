@@ -1,6 +1,7 @@
 package main
 
 import (
+	config "LeetCode-Rank/config_loader"
 	"LeetCode-Rank/db"
 	"LeetCode-Rank/utils"
 
@@ -11,6 +12,7 @@ import (
 )
 
 func main() {
+	config.Init()
 	db.Init()
 	//utils.Update()
 	c := cron.New(cron.WithSeconds())

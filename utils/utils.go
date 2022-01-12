@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"LeetCode-Rank/crawler"
 	"LeetCode-Rank/db"
 	"LeetCode-Rank/model"
+	"LeetCode-Rank/service/crawler"
 	"fmt"
 	"time"
 

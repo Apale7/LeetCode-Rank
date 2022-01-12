@@ -13,6 +13,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/viper v1.7.1
+	go.mongodb.org/mongo-driver v1.8.2 // indirect
 	gorm.io/driver/mysql v1.2.0
 	gorm.io/gorm v1.22.3
 )
