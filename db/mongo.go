@@ -7,12 +7,15 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 var (
 	client *mongo.Client
 )
+
+func Init(ctx context.Context) {
+	InitMongo(ctx)
+}
 
 func InitMongo(ctx context.Context) {
 	var err error
@@ -22,7 +25,7 @@ func InitMongo(ctx context.Context) {
 	if err != nil {
 		panic(err)
 	}
-	err = client.Ping(ctx, readpref.Primary())
+	err = client.Ping(ctx, nil)
 	if err != nil {
 		panic(err)
 	}

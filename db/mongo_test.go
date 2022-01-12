@@ -10,6 +10,7 @@ import (
 func TestMain(m *testing.M) {
 	os.Chdir("../")
 	config.Init()
+	Init(context.TODO())
 	os.Exit(m.Run())
 }
 func TestInitMongo(t *testing.T) {

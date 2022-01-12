@@ -58,13 +58,3 @@ func Update() {
 		time.Sleep(time.Second * 5)
 	}
 }
-
-func writeRedis(username string, acInfo *model.AcData) {
-	ac7Day := getNum7Day(username)
-	easy, medium, hard := getScoreToday(username)
-	db.RedisClient.Set(username+"_ac_total", acInfo.UserAcInfo.UserProfilePublicProfile.SubmissionProgress.AcTotal, 0)
-	db.RedisClient.Set(username+"_ac_today_easy", easy, 0)
-	db.RedisClient.Set(username+"_ac_today_medium", medium, 0)
-	db.RedisClient.Set(username+"_ac_today_hard", hard, 0)
-	db.RedisClient.Set(username+"_ac_7day", ac7Day, 0)
-}

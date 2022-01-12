@@ -4,6 +4,7 @@ import (
 	config "LeetCode-Rank/config_loader"
 	"LeetCode-Rank/db"
 	"LeetCode-Rank/utils"
+	"context"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -12,8 +13,9 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	config.Init()
-	db.Init()
+	db.Init(ctx)
 	//utils.Update()
 	c := cron.New(cron.WithSeconds())
 	// utils.Update()
