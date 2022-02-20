@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	db_model "LeetCode-Rank/db/model"
 	"LeetCode-Rank/model"
 	"fmt"
 	"io/ioutil"
@@ -12,10 +13,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	url = "https://leetcode-cn.com/graphql"
+)
+
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-var lang map[string]string
-var header map[string][]string
+var (
+	lang   map[string]string
+	header map[string][]string
+)
 
 func init() {
 	header = make(map[string][]string)
@@ -29,27 +36,27 @@ func init() {
 	header["sec-fetch-dest"] = []string{"empty"}
 	header["sec-fetch-mode"] = []string{"cors"}
 	header["sec-fetch-site"] = []string{"same-origin"}
-	header["user-agent"] = []string{"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36"}
+	header["user-agent"] = []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36 Edg/98.0.1108.56"}
 	header["x-csrftoken"] = []string{"AFrbuAoCqSd8oN7A7AffwmmDgnYZ7V6uNolMLnJT5rcXEuiPlIGpNjzasr7eK85l"}
 	header["x-definition-name"] = []string{"question"}
 	header["x-operation-name"] = []string{"questionData"}
 	header["x-timezone"] = []string{"Etc/Unknown"}
-	//fmt.Println(header)
+	// fmt.Println(header)
 	lang = make(map[string]string)
 	lang["A_0"] = "C++"
 	lang["A_1"] = "Java"
-	//lang["A_2"] = "Python2"
-	//lang["A_3"] = "Python3"
-	//lang["A_4"] = "C"
-	//lang["A_5"] = "C#"
-	//lang["A_6"] = "JavaScript"
-	//lang["A_7"] = "Ruby"
-	//lang["A_8"] = "Swift"
+	// lang["A_2"] = "Python2"
+	// lang["A_3"] = "Python3"
+	// lang["A_4"] = "C"
+	// lang["A_5"] = "C#"
+	// lang["A_6"] = "JavaScript"
+	// lang["A_7"] = "Ruby"
+	// lang["A_8"] = "Swift"
 	lang["A_10"] = "Go"
-	//lang["A_10"] = "Scala"
+	// lang["A_10"] = "Scala"
 	lang["A_11"] = "Python3"
-	//lang["A_12"] = "Rust"
-	//lang["A_13"] = "PHP"
+	// lang["A_12"] = "Rust"
+	// lang["A_13"] = "PHP"
 	lang["A_20"] = "TypeScript"
 }
 
@@ -71,7 +78,7 @@ func unique(submits []model.RecentSubmissions) []model.RecentSubmissions {
 }
 
 func GetData(username string) []model.RecentSubmissions {
-	//username := "apale"
+	// username := "apale"
 	url := "https://leetcode-cn.com/graphql?oprationName=recentSubmissions&variables={%22userSlug%22:%22" + username + "%22}&query=query%20recentSubmissions($userSlug:%20String!){recentSubmissions(userSlug:%20$userSlug){status%20lang%20question{questionFrontendId%20title%20translatedTitle%20titleSlug%20__typename}submitTime%20__typename}}"
 	client := &http.Client{}
 	res, err := client.Get(url)
@@ -89,6 +96,7 @@ func GetData(username string) []model.RecentSubmissions {
 	submmits := unique(data.Data.RecentSubmissions)
 	return submmits
 }
+
 func GetDifficulty(title string) int {
 	client := &http.Client{}
 	body := fmt.Sprintf(`{"operationName": "questionData",
@@ -116,9 +124,8 @@ func GetDifficulty(title string) int {
 	}
 }
 
-func GetUserAcInfo(username string) *model.AcData {
+func GetUserPublicProfile(username string) *model.AcData {
 	fmt.Println(username)
-	url := "https://leetcode-cn.com/graphql"
 	postData := model.PostData{
 		OprationName: "userPublicProfile",
 		Variables:    model.UserSlug{UserSlug: username},
@@ -140,9 +147,48 @@ func GetUserAcInfo(username string) *model.AcData {
 	var data model.AcData
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		fmt.Println(string(body))
+		log.Error(errors.WithStack(err))
+		return nil
 	}
-	fmt.Println(data)
+	fmt.Printf("%+v", data)
 	// submmits := unique(data.Data.RecentSubmissions)
 	return &data
+}
+
+func GetUserQuestionProgress(username string) *db_model.Accepted {
+	postData := model.PostData{
+		OprationName: "userQuestionProgress",
+		Variables:    model.UserSlug{UserSlug: username},
+		Query:        "query userQuestionProgress($userSlug: String!) {\n  userProfileUserQuestionProgress(userSlug: $userSlug) {\n    numAcceptedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    numFailedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    numUntouchedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    __typename\n  }\n}\n",
+	}
+	client := &http.Client{}
+	bytes, _ := json.Marshal(postData)
+
+	res, err := client.Post(url, "application/json", strings.NewReader(string(bytes)))
+	if err != nil {
+		log.Error(errors.WithStack(err))
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Error(errors.WithStack(err))
+	}
+	data := model.QuestionInfo{}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		log.Error(errors.WithStack(err))
+		return nil
+	}
+	ret := db_model.NewAccepted()
+	for _, info := range data.Data.UserProfileUserQuestionProgress.NumAcceptedQuestions {
+		switch info.Difficulty {
+		case "EASY":
+			ret.Easy = int(info.Count)
+		case "MEDIUM":
+			ret.Medium = int(info.Count)
+		case "HARD":
+			ret.Hard = int(info.Count)
+		}
+	}
+	return ret
 }

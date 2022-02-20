@@ -16,11 +16,13 @@ func main() {
 	ctx := context.Background()
 	config.Init()
 	db.Init(ctx)
-	//utils.Update()
+	// utils.Update()
 	c := cron.New(cron.WithSeconds())
 	// utils.Update()
-	_, err := c.AddFunc("0 9-59/10 2-23/1 * * *", utils.Update)
-	utils.Update()
+	_, err := c.AddFunc("0 9-59/10 2-23/1 * * *", func() {
+		utils.Update(ctx)
+	})
+	utils.Update(ctx)
 	if err != nil {
 		log.Error(errors.WithStack(err))
 		return
@@ -30,10 +32,10 @@ func main() {
 	CollectRouter(r)
 
 	err = r.Run(":4398")
-	//err = r.Run(":6799")
+	// err = r.Run(":6799")
 	if err != nil {
 		log.Error(errors.WithStack(err))
 		return
 	}
-	//crawler.GetDifficulty(`two-sum`)
+	// crawler.GetDifficulty(`two-sum`)
 }

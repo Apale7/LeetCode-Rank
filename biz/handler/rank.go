@@ -1,27 +1,26 @@
 package handler
 
 import (
+	"LeetCode-Rank/biz/dal"
 	"LeetCode-Rank/db"
-	"LeetCode-Rank/model"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 func GetList(c *gin.Context) {
-	viper.AddConfigPath("config")
-	viper.SetConfigName("userlist")
-	viper.ReadInConfig()
-	var Users []string = viper.GetStringSlice("users")
-	viper.SetConfigName("user_map")
-	viper.ReadInConfig()
-	user_map := viper.GetStringMap("usermap")
-	data := []model.Rank{}
-	tmp := model.Rank{}
-	for _, username := range Users {
+	users, err := dal.GetUsers(c)
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": err.Error(),
+		})
+		return
+	}
+	for _, user := range users {
 		tmp.Name = user_map[username].(string)
 		ac7Day, err := db.RedisClient.Get(username + "_ac_7day").Int()
 		easy, err := db.RedisClient.Get(username + "_ac_today_easy").Int()

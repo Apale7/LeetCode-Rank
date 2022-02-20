@@ -9,9 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var (
-	client *mongo.Client
-)
+var client *mongo.Client
 
 func Init(ctx context.Context) {
 	InitMongo(ctx)
@@ -29,4 +27,8 @@ func InitMongo(ctx context.Context) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func GetDatabase() *mongo.Database {
+	return client.Database("leetcode")
 }
