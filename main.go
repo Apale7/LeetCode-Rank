@@ -22,7 +22,9 @@ func main() {
 	_, err := c.AddFunc("0 9-59/10 2-23/1 * * *", func() {
 		utils.Update(ctx)
 	})
-	utils.Update(ctx)
+	// go func() {
+	// 	utils.Update(ctx)
+	// }()
 	if err != nil {
 		log.Error(errors.WithStack(err))
 		return

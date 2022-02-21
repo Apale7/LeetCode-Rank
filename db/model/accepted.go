@@ -11,6 +11,16 @@ type Accepted struct {
 	Easy   int                `bson:"easy"`
 }
 
+func (a *Accepted) Sub(b *Accepted) *Accepted {
+	return &Accepted{
+		Meta:   a.Meta,
+		UserID: a.UserID,
+		Hard:   a.Hard - b.Hard,
+		Medium: a.Medium - b.Medium,
+		Easy:   a.Easy - b.Easy,
+	}
+}
+
 func NewAccepted() *Accepted {
 	return &Accepted{
 		Meta: *NewMeta(),

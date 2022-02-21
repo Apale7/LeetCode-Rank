@@ -9,6 +9,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -17,7 +18,7 @@ func getAcceptedCollection(ctx context.Context) *mongo.Collection {
 	return db.GetDatabase().Collection("accepted")
 }
 
-func UserID(userID int) Option {
+func UserID(userID primitive.ObjectID) Option {
 	return func(filter bson.D) bson.D {
 		filter = append(filter, bson.E{Key: "user_id", Value: bson.D{{Key: "$eq", Value: userID}}})
 		return filter

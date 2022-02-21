@@ -2,12 +2,17 @@ package handler
 
 import (
 	"LeetCode-Rank/biz/dal"
-	"LeetCode-Rank/db"
+	db_model "LeetCode-Rank/db/model"
+	"LeetCode-Rank/model"
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetList(c *gin.Context) {
@@ -20,25 +25,48 @@ func GetList(c *gin.Context) {
 		})
 		return
 	}
+	data := make([]model.Rank, 0, len(users))
 	for _, user := range users {
-		tmp.Name = user_map[username].(string)
-		ac7Day, err := db.RedisClient.Get(username + "_ac_7day").Int()
-		easy, err := db.RedisClient.Get(username + "_ac_today_easy").Int()
-		medium, err := db.RedisClient.Get(username + "_ac_today_medium").Int()
-		hard, err := db.RedisClient.Get(username + "_ac_today_hard").Int()
-
-		acNum, err := db.RedisClient.Get(username + "_ac_total").Int()
-		tmp.TotalAC = acNum
-		tmp.Easy = easy
-		tmp.Medium = medium
-		tmp.Hard = hard
-		tmp.TotalAC7Day = ac7Day
-		if err != nil {
-			log.Warnf("获取redis数据err: ", err)
+		tmp := model.Rank{
+			Name: user.Nickname,
 		}
-		fmt.Printf("%+v\n", tmp)
+
+		ac24H := acceptedNDay(c, user.ID, time.Now(), 1)
+		tmp.Easy = ac24H.Easy
+		tmp.Medium = ac24H.Medium
+		tmp.Hard = ac24H.Hard
+		ac7Day := acceptedNDay(c, user.ID, time.Now(), 7)
+		tmp.TotalAC7Day = ac7Day.Easy + ac7Day.Medium + ac7Day.Hard
+		actotal, err := dal.GetAcceptedLatest(c, dal.UserID(user.ID))
+		if err != nil {
+			logrus.Error(err)
+			continue
+		}
+		tmp.TotalAC = actotal.Easy + actotal.Medium + actotal.Hard
 		data = append(data, tmp)
-		// fmt.Println(tmp)
 	}
 	c.JSON(http.StatusOK, data)
+}
+
+func acceptedNDay(ctx context.Context, userID primitive.ObjectID, end time.Time, n int) *db_model.Accepted {
+	begin := end.AddDate(0, 0, -n)
+	beginAc, err := dal.GetAcceptedEarlist(ctx, dal.CreatedAtGTE(begin), dal.UserID(userID))
+	if err != nil {
+		logrus.Error(err)
+		return nil
+	}
+	fmt.Printf("%+v\n", beginAc)
+	endAc, err := dal.GetAcceptedLatest(ctx, dal.CreatedAtLT(end), dal.UserID(userID))
+	if err != nil {
+		logrus.Error(err)
+		return nil
+	}
+	fmt.Printf("%+v\n", endAc)
+	if beginAc == nil {
+		return endAc
+	}
+	if endAc == nil {
+		return nil
+	}
+	return endAc.Sub(beginAc)
 }
