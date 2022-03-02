@@ -17,9 +17,8 @@ func main() {
 	ctx := context.Background()
 	config.Init()
 	db.Init(ctx)
-	// utils.Update()
 	c := cron.New(cron.WithSeconds())
-	// utils.Update()
+	utils.Update(ctx)
 	_, err := c.AddFunc("0 9-59/10 2-23/1 * * *", func() {
 		utils.Update(ctx)
 	})

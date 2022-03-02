@@ -167,7 +167,8 @@ func GetUserQuestionProgress(username string) *db_model.Accepted {
 	}
 	client := &http.Client{}
 	pAddr, err := proxy.GetProxy()
-	if len(pAddr) > 0 {
+
+	if err == nil && len(pAddr) > 0 {
 		p, _ := url.Parse(pAddr)
 		netTransport := &http.Transport{
 			Proxy:                 http.ProxyURL(p),
@@ -175,6 +176,7 @@ func GetUserQuestionProgress(username string) *db_model.Accepted {
 			ResponseHeaderTimeout: time.Second * time.Duration(5),
 		}
 		client.Transport = netTransport
+		log.Info("使用代理:", pAddr)
 	}
 
 	bytes, _ := json.Marshal(postData)
