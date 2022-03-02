@@ -1,11 +1,12 @@
 package dal
 
 import (
-	"LeetCode-Rank/db"
-	"LeetCode-Rank/db/model"
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/Apale7/LeetCode-Rank/db"
+	"github.com/Apale7/LeetCode-Rank/db/model"
 
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"

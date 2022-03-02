@@ -1,10 +1,11 @@
 package db
 
 import (
-	config "LeetCode-Rank/config_loader"
 	"context"
 	"os"
 	"testing"
+
+	config "github.com/Apale7/LeetCode-Rank/config_loader"
 )
 
 func TestMain(m *testing.M) {
@@ -13,6 +14,7 @@ func TestMain(m *testing.M) {
 	Init(context.TODO())
 	os.Exit(m.Run())
 }
+
 func TestInitMongo(t *testing.T) {
 	InitMongo(context.TODO())
 }

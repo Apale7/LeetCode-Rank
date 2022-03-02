@@ -1,4 +1,4 @@
-# LeetCode-Rank
+# github.com/Apale7/LeetCode-Rank
 配置LeetCode的username列表后，定期爬取用户提交记录，存入MySQL和redis
 ## 运行
 - go mod tidy

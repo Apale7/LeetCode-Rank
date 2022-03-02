@@ -1,14 +1,15 @@
 package dal
 
 import (
-	config "LeetCode-Rank/config_loader"
-	"LeetCode-Rank/db"
-	"LeetCode-Rank/db/model"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
+
+	config "github.com/Apale7/LeetCode-Rank/config_loader"
+	"github.com/Apale7/LeetCode-Rank/db"
+	"github.com/Apale7/LeetCode-Rank/db/model"
 )
 
 func TestMain(m *testing.M) {

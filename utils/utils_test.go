@@ -1,11 +1,12 @@
 package utils
 
 import (
-	config "LeetCode-Rank/config_loader"
-	"LeetCode-Rank/db"
 	"context"
 	"os"
 	"testing"
+
+	config "github.com/Apale7/LeetCode-Rank/config_loader"
+	"github.com/Apale7/LeetCode-Rank/db"
 )
 
 func TestMain(m *testing.M) {

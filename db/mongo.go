@@ -1,9 +1,10 @@
 package db
 
 import (
-	config "LeetCode-Rank/config_loader"
 	"context"
 	"time"
+
+	config "github.com/Apale7/LeetCode-Rank/config_loader"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

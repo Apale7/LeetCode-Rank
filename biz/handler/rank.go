@@ -1,13 +1,14 @@
 package handler
 
 import (
-	"LeetCode-Rank/biz/dal"
-	db_model "LeetCode-Rank/db/model"
-	"LeetCode-Rank/model"
 	"context"
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/Apale7/LeetCode-Rank/biz/dal"
+	db_model "github.com/Apale7/LeetCode-Rank/db/model"
+	"github.com/Apale7/LeetCode-Rank/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"

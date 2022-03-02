@@ -1,12 +1,16 @@
 package crawler
 
 import (
-	db_model "LeetCode-Rank/db/model"
-	"LeetCode-Rank/model"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
+
+	db_model "github.com/Apale7/LeetCode-Rank/db/model"
+	"github.com/Apale7/LeetCode-Rank/model"
+	"github.com/Apale7/LeetCode-Rank/service/proxy"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
@@ -14,7 +18,7 @@ import (
 )
 
 const (
-	url = "https://leetcode-cn.com/graphql"
+	apiURL = "https://leetcode-cn.com/graphql"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -135,7 +139,7 @@ func GetUserPublicProfile(username string) *model.AcData {
 	client := &http.Client{}
 	bytes, _ := json.Marshal(postData)
 
-	res, err := client.Post(url, "application/json", strings.NewReader(string(bytes)))
+	res, err := client.Post(apiURL, "application/json", strings.NewReader(string(bytes)))
 	if err != nil {
 		log.Error(errors.WithStack(err))
 	}
@@ -162,9 +166,20 @@ func GetUserQuestionProgress(username string) *db_model.Accepted {
 		Query:        "query userQuestionProgress($userSlug: String!) {\n  userProfileUserQuestionProgress(userSlug: $userSlug) {\n    numAcceptedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    numFailedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    numUntouchedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    __typename\n  }\n}\n",
 	}
 	client := &http.Client{}
+	pAddr, err := proxy.GetProxy()
+	if len(pAddr) > 0 {
+		p, _ := url.Parse(pAddr)
+		netTransport := &http.Transport{
+			Proxy:                 http.ProxyURL(p),
+			MaxIdleConnsPerHost:   10,
+			ResponseHeaderTimeout: time.Second * time.Duration(5),
+		}
+		client.Transport = netTransport
+	}
+
 	bytes, _ := json.Marshal(postData)
 
-	res, err := client.Post(url, "application/json", strings.NewReader(string(bytes)))
+	res, err := client.Post(apiURL, "application/json", strings.NewReader(string(bytes)))
 	if err != nil {
 		log.Error(errors.WithStack(err))
 	}

@@ -1,10 +1,11 @@
 package main
 
 import (
-	config "LeetCode-Rank/config_loader"
-	"LeetCode-Rank/db"
-	"LeetCode-Rank/utils"
 	"context"
+
+	config "github.com/Apale7/LeetCode-Rank/config_loader"
+	"github.com/Apale7/LeetCode-Rank/db"
+	"github.com/Apale7/LeetCode-Rank/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"

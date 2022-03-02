@@ -1,11 +1,12 @@
 package utils
 
 import (
-	"LeetCode-Rank/biz/dal"
-	"LeetCode-Rank/service/crawler"
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/Apale7/LeetCode-Rank/biz/dal"
+	"github.com/Apale7/LeetCode-Rank/service/crawler"
 
 	"github.com/sirupsen/logrus"
 )

@@ -1,12 +1,13 @@
 package handler
 
 import (
-	config "LeetCode-Rank/config_loader"
-	"LeetCode-Rank/db"
 	"context"
 	"os"
 	"testing"
 	"time"
+
+	config "github.com/Apale7/LeetCode-Rank/config_loader"
+	"github.com/Apale7/LeetCode-Rank/db"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
