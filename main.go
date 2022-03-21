@@ -6,7 +6,7 @@ import (
 	config "github.com/Apale7/LeetCode-Rank/config_loader"
 	"github.com/Apale7/LeetCode-Rank/db"
 	"github.com/Apale7/LeetCode-Rank/utils"
-
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
@@ -32,7 +32,7 @@ func main() {
 	c.Start()
 	r := gin.Default()
 	CollectRouter(r)
-
+	pprof.Register(r)
 	err = r.Run(":4398")
 	// err = r.Run(":6799")
 	if err != nil {

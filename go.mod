@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/Apale7/lazy_proxy v0.0.0-20220302132649-0b857dbfeb40
+	github.com/gin-contrib/pprof v1.3.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/json-iterator/go v1.1.10
 	github.com/pkg/errors v0.9.1
