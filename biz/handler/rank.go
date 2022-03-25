@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -56,13 +55,13 @@ func acceptedNDay(ctx context.Context, userID primitive.ObjectID, end time.Time,
 		logrus.Error(err)
 		return nil
 	}
-	fmt.Printf("%+v\n", beginAc)
+	// fmt.Printf("%+v\n", beginAc)
 	endAc, err := dal.GetAcceptedLatest(ctx, dal.CreatedAtLT(end), dal.UserID(userID))
 	if err != nil {
 		logrus.Error(err)
 		return nil
 	}
-	fmt.Printf("%+v\n", endAc)
+	// fmt.Printf("%+v\n", endAc)
 	if beginAc == nil {
 		return endAc
 	}

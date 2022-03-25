@@ -18,8 +18,8 @@ func main() {
 	config.Init()
 	db.Init(ctx)
 	c := cron.New(cron.WithSeconds())
-	utils.Update(ctx)
-	_, err := c.AddFunc("0 9-59/10 2-23/1 * * *", func() {
+	// utils.Update(ctx)
+	_, err := c.AddFunc("0 */5 */1 * * *", func() {
 		utils.Update(ctx)
 	})
 	// go func() {
