@@ -137,6 +137,18 @@ func GetUserPublicProfile(username string) *model.AcData {
 	}
 
 	client := &http.Client{}
+	pAddr, err := proxy.GetProxy()
+
+	if err == nil && len(pAddr) > 0 {
+		p, _ := url.Parse(pAddr)
+		netTransport := &http.Transport{
+			Proxy:                 http.ProxyURL(p),
+			MaxIdleConnsPerHost:   10,
+			ResponseHeaderTimeout: time.Second * time.Duration(5),
+		}
+		client.Transport = netTransport
+		log.Info("使用代理:", pAddr)
+	}
 	bytes, _ := json.Marshal(postData)
 
 	res, err := client.Post(apiURL, "application/json", strings.NewReader(string(bytes)))

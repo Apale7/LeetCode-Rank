@@ -1,25 +1,30 @@
 package proxy
 
-import "github.com/Apale7/lazy_proxy/proxy_getter"
+import (
+	"fmt"
 
-var getter proxy_getter.AutoProxyGetter
+	"github.com/Apale7/lazy_proxy/proxy_pool"
+	"github.com/Apale7/lazy_proxy/proxy_pool/proxy_crawler"
+)
+
+var getter proxy_pool.AutoProxyGetter
 
 func init() {
-	return
-	getter = &proxy_getter.DefaultAutoProxyGetter{
-		ProxyGetter: &proxy_getter.DefaultProxyGetter{},
-		Crawler:     &proxy_getter.CrawlerIP3366{},
+	fmt.Println("proxy init")
+	getter = &proxy_pool.DefaultAutoProxyGetter{
+		ProxyPool: &proxy_pool.DefaultProxyPool{},
+		Crawler:   &proxy_crawler.CrawlerKuaidaili{},
 	}
-	getter = proxy_getter.WrapWithTimeDecorator(getter, 300)
-//	getter = proxy_getter.WrapWithThresholdDecorator(getter, 10)
+	getter = proxy_pool.WrapWithTimeDecorator(getter, 300)
+	getter = proxy_pool.WrapWithThresholdDecorator(getter, 25)
 	getter.PushProxy(getter.CrawlProxy()...)
 
 	if getter.LenOfProxies() == 0 {
 		panic("no proxy")
 	}
+	fmt.Println("proxy init done")
 }
 
 func GetProxy() (string, error) {
-	return "", nil
-//	return getter.GetProxy()
+	return getter.GetProxy()
 }

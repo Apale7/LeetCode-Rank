@@ -1,6 +1,8 @@
 package crawler
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -11,6 +13,15 @@ func TestGetUserAcInfo(t *testing.T) {
 }
 
 func TestGetUserQuestionProgress(t *testing.T) {
+	wg := sync.WaitGroup{}
 	logrus.SetLevel(logrus.DebugLevel)
-	GetUserQuestionProgress("apale")
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			ac := GetUserQuestionProgress("apale")
+			fmt.Printf("%+v\n", ac)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
 }
