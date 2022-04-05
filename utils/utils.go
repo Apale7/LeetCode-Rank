@@ -2,10 +2,10 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Apale7/LeetCode-Rank/biz/dal"
+	"github.com/Apale7/LeetCode-Rank/db/model"
 	"github.com/Apale7/LeetCode-Rank/service/crawler"
 
 	"github.com/sirupsen/logrus"
@@ -18,16 +18,17 @@ func Update(ctx context.Context) {
 		return
 	}
 	for _, user := range users {
-		fmt.Printf("username: %s\n", user.Username)
-		accepted := crawler.GetUserQuestionProgress(user.Username)
-		accepted.UserID = user.ID
-		err := dal.CreateAccepted(ctx, accepted)
-		if err != nil {
-			logrus.Errorf("username: %s, CreateAccepted error: %v", user.Username, err)
-			continue
-		}
-		fmt.Printf("%+v\n", accepted)
-		time.Sleep(time.Second * 5)
+		go func(user *model.User) {
+			logrus.Printf("username: %s\n", user.Username)
+			accepted := crawler.GetUserQuestionProgress(user.Username)
+			accepted.UserID = user.ID
+			err := dal.CreateAccepted(ctx, accepted)
+			if err != nil {
+				logrus.Errorf("username: %s, CreateAccepted error: %v", user.Username, err)
+				return
+			}
+			logrus.Infof("%+v\n", accepted)
+		}(user)
 	}
 }
 
