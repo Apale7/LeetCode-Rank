@@ -3,7 +3,7 @@ module github.com/Apale7/LeetCode-Rank
 go 1.17
 
 require (
-	github.com/Apale7/lazy_proxy v0.0.0-20220404181855-fc57c10cc5de
+	github.com/Apale7/lazy_proxy v0.0.0-20220405041124-db5bd567db7b
 	github.com/gin-contrib/pprof v1.3.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/json-iterator/go v1.1.10
@@ -63,5 +63,3 @@ require (
 	gopkg.in/ini.v1 v1.51.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
-
-replace github.com/Apale7/lazy_proxy => /root/Code/go/lazy_proxy
