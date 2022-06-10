@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -45,6 +46,7 @@ func GetList(c *gin.Context) {
 		tmp.TotalAC = actotal.Easy + actotal.Medium + actotal.Hard
 		data = append(data, tmp)
 	}
+	fmt.Println(data)
 	c.JSON(http.StatusOK, data)
 }
 

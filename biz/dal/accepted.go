@@ -2,7 +2,6 @@ package dal
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Apale7/LeetCode-Rank/db"
@@ -63,7 +62,7 @@ func GetAcceptedEarlist(ctx context.Context, queryFuncs ...Option) (*model.Accep
 		return nil, err
 	}
 	if len(results) == 0 {
-		return nil, fmt.Errorf("GetAcceptedEarlist error: no accepted found")
+		return nil, nil
 	}
 	return results[0], err
 }
@@ -85,7 +84,7 @@ func GetAcceptedLatest(ctx context.Context, queryFuncs ...Option) (*model.Accept
 		return nil, err
 	}
 	if len(results) == 0 {
-		return nil, fmt.Errorf("GetAcceptedEarlist error: no accepted found")
+		return nil, nil
 	}
 	return results[0], err
 }

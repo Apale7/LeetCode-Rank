@@ -10,9 +10,9 @@ import (
 	config "github.com/Apale7/LeetCode-Rank/config_loader"
 	"github.com/Apale7/LeetCode-Rank/db"
 	"github.com/Apale7/LeetCode-Rank/model"
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
-
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -29,7 +29,7 @@ func Test_acceptedNDay(t *testing.T) {
 }
 
 func BenchmarkDB(b *testing.B) {
-	for i:=0; i<b.N; i++ {
+	for i := 0; i < b.N; i++ {
 		users, err := dal.GetUsers(context.TODO())
 		if err != nil {
 			log.Error(err)
@@ -71,4 +71,8 @@ func Benchmark_acceptedTotal(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		dal.GetAcceptedLatest(context.TODO(), dal.UserID(id))
 	}
+}
+
+func TestGetList(t *testing.T) {
+	GetList(&gin.Context{})
 }
