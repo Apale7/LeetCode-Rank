@@ -63,5 +63,3 @@ require (
 	gopkg.in/ini.v1 v1.51.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
-
-// replace github.com/Apale7/lazy_proxy => /root/Code/go/lazy_proxy
