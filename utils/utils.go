@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Apale7/LeetCode-Rank/biz/dal"
+	"github.com/Apale7/LeetCode-Rank/biz/handler"
 	"github.com/Apale7/LeetCode-Rank/db/model"
 	"github.com/Apale7/LeetCode-Rank/service/crawler"
 
@@ -30,6 +31,7 @@ func Update(ctx context.Context) {
 			logrus.Infof("%+v\n", accepted)
 		}(user)
 	}
+	handler.GetListFromCache(ctx, true) // flush cache
 }
 
 func GetDateBegin(t time.Time) time.Time {
