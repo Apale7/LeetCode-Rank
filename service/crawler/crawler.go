@@ -177,25 +177,14 @@ func GetUserQuestionProgress(username string) *db_model.Accepted {
 		Variables:    model.UserSlug{UserSlug: username},
 		Query:        "query userQuestionProgress($userSlug: String!) {\n  userProfileUserQuestionProgress(userSlug: $userSlug) {\n    numAcceptedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    numFailedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    numUntouchedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    __typename\n  }\n}\n",
 	}
-	client := &http.Client{}
-	pAddr, err := proxy.GetProxy()
-
-	if err == nil && len(pAddr) > 0 {
-		p, _ := url.Parse(pAddr)
-		netTransport := &http.Transport{
-			Proxy:                 http.ProxyURL(p),
-			MaxIdleConnsPerHost:   10,
-			ResponseHeaderTimeout: time.Second * time.Duration(5),
-		}
-		client.Transport = netTransport
-		log.Info("使用代理:", pAddr)
-	}
+	client := &http.Client{Timeout: time.Second * 10}
 
 	bytes, _ := json.Marshal(postData)
 
 	res, err := client.Post(apiURL, "application/json", strings.NewReader(string(bytes)))
 	if err != nil {
 		log.Error(errors.WithStack(err))
+		return nil
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)

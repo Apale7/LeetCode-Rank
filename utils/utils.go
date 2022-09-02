@@ -19,9 +19,13 @@ func Update(ctx context.Context) {
 		return
 	}
 	for _, user := range users {
-		go func(user *model.User) {
+		func(user *model.User) {
 			logrus.Printf("username: %s\n", user.Username)
 			accepted := crawler.GetUserQuestionProgress(user.Username)
+			if accepted == nil {
+				logrus.Warnf("username: %s, accepted is nil", user.Username)
+				return
+			}
 			accepted.UserID = user.ID
 			err := dal.CreateAccepted(ctx, accepted)
 			if err != nil {
@@ -30,6 +34,7 @@ func Update(ctx context.Context) {
 			}
 			logrus.Infof("%+v\n", accepted)
 		}(user)
+		time.Sleep(10 * time.Second)
 	}
 	handler.GetListFromCache(ctx, true) // flush cache
 }

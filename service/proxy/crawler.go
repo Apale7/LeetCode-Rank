@@ -35,7 +35,7 @@ func (c *jiangxiliCralwer) CrawlProxy() []string {
 	}
 	var proxyList []string
 	for _, a := range res.Data.Data {
-		proxyList = append(proxyList, a.Protocol+"://"+a.IP+":"+a.Port)
+		proxyList = append(proxyList, a.IP+":"+a.Port)
 	}
 	return proxyList
 }
