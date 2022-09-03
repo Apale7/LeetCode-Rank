@@ -19,7 +19,7 @@ func Update(ctx context.Context) {
 		return
 	}
 	for _, user := range users {
-		func(user *model.User) {
+		go func(user *model.User) {
 			logrus.Printf("username: %s\n", user.Username)
 			accepted := crawler.GetUserQuestionProgress(user.Username)
 			if accepted == nil {
@@ -34,9 +34,9 @@ func Update(ctx context.Context) {
 			}
 			logrus.Infof("%+v\n", accepted)
 		}(user)
-		time.Sleep(10 * time.Second)
 	}
-	handler.GetListFromCache(ctx, true) // flush cache
+
+	_, _ = handler.GetListFromCache(ctx, true) // flush cache
 }
 
 func GetDateBegin(t time.Time) time.Time {

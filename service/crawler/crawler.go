@@ -11,8 +11,8 @@ import (
 	db_model "github.com/Apale7/LeetCode-Rank/db/model"
 	"github.com/Apale7/LeetCode-Rank/model"
 	"github.com/Apale7/LeetCode-Rank/service/proxy"
+	"github.com/bytedance/sonic"
 
-	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -20,113 +20,6 @@ import (
 const (
 	apiURL = "https://leetcode-cn.com/graphql"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
-
-var (
-	lang   map[string]string
-	header map[string][]string
-)
-
-func init() {
-	header = make(map[string][]string)
-	header["accept"] = []string{"*/*"}
-	header["accept-encoding"] = []string{"gzip", "deflate", "br"}
-	header["accept-language"] = []string{"zh-CN"}
-	header["content-length"] = []string{"1262"}
-	header["content-type"] = []string{"application/json"}
-	header["origin"] = []string{"https://leetcode-cn.com"}
-	header["referer"] = []string{"https://leetcode-cn.com/problems/two-sum/"}
-	header["sec-fetch-dest"] = []string{"empty"}
-	header["sec-fetch-mode"] = []string{"cors"}
-	header["sec-fetch-site"] = []string{"same-origin"}
-	header["user-agent"] = []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36 Edg/98.0.1108.56"}
-	header["x-csrftoken"] = []string{"AFrbuAoCqSd8oN7A7AffwmmDgnYZ7V6uNolMLnJT5rcXEuiPlIGpNjzasr7eK85l"}
-	header["x-definition-name"] = []string{"question"}
-	header["x-operation-name"] = []string{"questionData"}
-	header["x-timezone"] = []string{"Etc/Unknown"}
-	// fmt.Println(header)
-	lang = make(map[string]string)
-	lang["A_0"] = "C++"
-	lang["A_1"] = "Java"
-	// lang["A_2"] = "Python2"
-	// lang["A_3"] = "Python3"
-	// lang["A_4"] = "C"
-	// lang["A_5"] = "C#"
-	// lang["A_6"] = "JavaScript"
-	// lang["A_7"] = "Ruby"
-	// lang["A_8"] = "Swift"
-	lang["A_10"] = "Go"
-	// lang["A_10"] = "Scala"
-	lang["A_11"] = "Python3"
-	// lang["A_12"] = "Rust"
-	// lang["A_13"] = "PHP"
-	lang["A_20"] = "TypeScript"
-}
-
-func unique(submits []model.RecentSubmissions) []model.RecentSubmissions {
-	ans := []model.RecentSubmissions{}
-	st := make(map[string]bool)
-	for _, v := range submits {
-		if v.Status != "A_10" {
-			continue
-		}
-		if !st[v.Question.QuestionFrontendID] {
-			v.Lang = lang[v.Lang]
-			v.Status = "accepted"
-			ans = append(ans, v)
-			st[v.Question.QuestionFrontendID] = true
-		}
-	}
-	return ans
-}
-
-func GetData(username string) []model.RecentSubmissions {
-	// username := "apale"
-	url := "https://leetcode-cn.com/graphql?oprationName=recentSubmissions&variables={%22userSlug%22:%22" + username + "%22}&query=query%20recentSubmissions($userSlug:%20String!){recentSubmissions(userSlug:%20$userSlug){status%20lang%20question{questionFrontendId%20title%20translatedTitle%20titleSlug%20__typename}submitTime%20__typename}}"
-	client := &http.Client{}
-	res, err := client.Get(url)
-	if err != nil {
-		log.Error(errors.WithStack(err))
-	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Error(errors.WithStack(err))
-	}
-	var data model.Info
-	err = json.Unmarshal(body, &data)
-	// fmt.Println(data)
-	submmits := unique(data.Data.RecentSubmissions)
-	return submmits
-}
-
-func GetDifficulty(title string) int {
-	client := &http.Client{}
-	body := fmt.Sprintf(`{"operationName": "questionData",
-    "variables": {
-       "titleSlug": "%s"
-    },
-    "query": "query questionData($titleSlug: String!) {\n  question(titleSlug: $titleSlug) {difficulty}\n}\n"}`, title)
-	req, _ := http.NewRequest("POST", "https://leetcode-cn.com/graphql/", strings.NewReader(body))
-	req.Header = header
-	res, _ := client.Do(req)
-	defer res.Body.Close()
-	resBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Error(errors.WithStack(err))
-	}
-	var data model.QuestionLevelInfo
-	err = json.Unmarshal(resBody, &data)
-	switch data.Data.Question.Difficulty {
-	case "Easy":
-		return 0
-	case "Medium":
-		return 1
-	default:
-		return 2
-	}
-}
 
 func GetUserPublicProfile(username string) *model.AcData {
 	fmt.Println(username)
@@ -149,7 +42,7 @@ func GetUserPublicProfile(username string) *model.AcData {
 		client.Transport = netTransport
 		log.Info("使用代理:", pAddr)
 	}
-	bytes, _ := json.Marshal(postData)
+	bytes, _ := sonic.Marshal(postData)
 
 	res, err := client.Post(apiURL, "application/json", strings.NewReader(string(bytes)))
 	if err != nil {
@@ -161,7 +54,7 @@ func GetUserPublicProfile(username string) *model.AcData {
 		log.Error(errors.WithStack(err))
 	}
 	var data model.AcData
-	err = json.Unmarshal(body, &data)
+	err = sonic.Unmarshal(body, &data)
 	if err != nil {
 		log.Error(errors.WithStack(err))
 		return nil
@@ -172,31 +65,55 @@ func GetUserPublicProfile(username string) *model.AcData {
 }
 
 func GetUserQuestionProgress(username string) *db_model.Accepted {
-	postData := model.PostData{
-		OprationName: "userQuestionProgress",
-		Variables:    model.UserSlug{UserSlug: username},
-		Query:        "query userQuestionProgress($userSlug: String!) {\n  userProfileUserQuestionProgress(userSlug: $userSlug) {\n    numAcceptedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    numFailedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    numUntouchedQuestions {\n      difficulty\n      count\n      __typename\n    }\n    __typename\n  }\n}\n",
+	url := "https://leetcode.cn/graphql/"
+	method := "POST"
+
+	payload := strings.NewReader(fmt.Sprintf(`{"query":"\n    query userQuestionProgress($userSlug: String!) {\n  userProfileUserQuestionProgress(userSlug: $userSlug) {\n    numAcceptedQuestions {\n      difficulty\n      count\n    }\n    numFailedQuestions {\n      difficulty\n      count\n    }\n    numUntouchedQuestions {\n      difficulty\n      count\n    }\n  }\n}\n    ","variables":{"userSlug":"%s"}}`, username))
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, payload)
+
+	if err != nil {
+		log.Error(errors.WithStack(err))
+		return nil
 	}
-	client := &http.Client{Timeout: time.Second * 10}
+	req.Header.Add("authority", "leetcode.cn")
+	req.Header.Add("accept", "*/*")
+	req.Header.Add("accept-language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6")
+	req.Header.Add("authorization", "")
+	req.Header.Add("content-type", "application/json")
+	req.Header.Add("cookie", "gr_user_id=aff0091b-7014-4a5b-9fac-28d37be10a75; _bl_uid=vXl3y37q40wlwR8ja814y5FtFLvR; a2873925c34ecbd2_gr_last_sent_cs1=apale; aliyungf_tc=ab3acadfaafb0bfdd49a76930438b947270fd1210c029645b160f3da0dc5a5fd; NEW_PROBLEMLIST_PAGE=1; a2873925c34ecbd2_gr_session_id=4c8a52fa-0d4f-4e68-9eb3-2d58dfdefc7b; a2873925c34ecbd2_gr_last_sent_sid_with_cs1=4c8a52fa-0d4f-4e68-9eb3-2d58dfdefc7b; a2873925c34ecbd2_gr_session_id_4c8a52fa-0d4f-4e68-9eb3-2d58dfdefc7b=true; csrftoken=4SZIVBNMtbjWTXEOZXd2h8NNUqdkCIRbm62TA6vJkJe7EVbz3Sj4yjxzqldhuYQi; messages=\"[[\\\"__json_message\\\"\\0540\\05425\\054\\\"\\\\u60a8\\\\u5df2\\\\u7ecf\\\\u767b\\\\u51fa\\\"]]:1oUQ9l:DmtM_12_NGwKhhecx9R5C7Jv2krlscbSzfP2VVJj2Lg\"; a2873925c34ecbd2_gr_cs1=apale")
+	req.Header.Add("origin", "https://leetcode.cn")
+	req.Header.Add("referer", "https://leetcode.cn/u/apale/")
+	req.Header.Add("sec-ch-ua", "\"Chromium\";v=\"104\", \" Not A;Brand\";v=\"99\", \"Microsoft Edge\";v=\"104\"")
+	req.Header.Add("sec-ch-ua-mobile", "?0")
+	req.Header.Add("sec-ch-ua-platform", "\"Windows\"")
+	req.Header.Add("sec-fetch-dest", "empty")
+	req.Header.Add("sec-fetch-mode", "cors")
+	req.Header.Add("sec-fetch-site", "same-origin")
+	req.Header.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36 Edg/104.0.1293.70")
+	req.Header.Add("x-csrftoken", "4SZIVBNMtbjWTXEOZXd2h8NNUqdkCIRbm62TA6vJkJe7EVbz3Sj4yjxzqldhuYQi")
 
-	bytes, _ := json.Marshal(postData)
-
-	res, err := client.Post(apiURL, "application/json", strings.NewReader(string(bytes)))
+	res, err := client.Do(req)
 	if err != nil {
 		log.Error(errors.WithStack(err))
 		return nil
 	}
 	defer res.Body.Close()
+
 	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Error(errors.WithStack(err))
-	}
-	data := model.QuestionInfo{}
-	err = json.Unmarshal(body, &data)
 	if err != nil {
 		log.Error(errors.WithStack(err))
 		return nil
 	}
+
+	data := model.QuestionInfo{}
+	err = sonic.Unmarshal(body, &data)
+	if err != nil {
+		log.Error(errors.WithStack(err))
+		return nil
+	}
+
 	ret := db_model.NewAccepted()
 	for _, info := range data.Data.UserProfileUserQuestionProgress.NumAcceptedQuestions {
 		switch info.Difficulty {
